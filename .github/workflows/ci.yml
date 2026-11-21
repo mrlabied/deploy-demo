@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [feature/tp-cd]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Afficher les informations du dépôt
+        run: |
+          echo "Repository: ${{ github.repository }}"
+          echo "Branch: ${{ github.ref_name }}"
+          echo "Commit: ${{ github.sha }}"
+
+      - name: Afficher les informations du runner
+        run: |
+          echo "OS: ${{ runner.os }}"
+          echo "Architecture: ${{ runner.arch }}"
+
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+        - name: Afficher les informations du dépôt
+          run: |
+            echo "Repository: ${{ github.repository }}"
+            echo "Branch: ${{ github.ref_name }}"
+            echo "Commit: ${{ github.sha }}"
+        - name: Afficher les informations du runner
+          run: |
+            echo "OS: ${{ runner.os }}"
+            echo "Architecture: ${{ runner.arch }}"
+
+
+    
