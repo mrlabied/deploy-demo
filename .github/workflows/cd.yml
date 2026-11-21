@@ -40,3 +40,35 @@ jobs:
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/fastapi-app:${{ steps.meta.outputs.sha_short }}
             ${{ secrets.DOCKERHUB_USERNAME }}/fastapi-app:latest
+
+  terraform-infra:
+    name: Terraform – Infrastructure as Code
+    needs: [docker-build-push]
+    runs-on: ubuntu-latest
+    environment: production
+    defaults:
+      run:
+        working-directory: ./terraform
+
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@v4
+
+      - name: Installer Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.0
+
+      - name: Initialiser Terraform
+        run: terraform init
+
+      - name: Vérifier le formatage et la syntaxe
+        run: |
+          terraform fmt -check
+          terraform validate
+
+      - name: Planifier les changements (Plan)
+        run: terraform plan -out=tfplan -input=false
+
+      - name: Appliquer l'infrastructure (Apply)
+        run: terraform apply -auto-approve tfplan
