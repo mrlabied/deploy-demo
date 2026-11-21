@@ -5,7 +5,7 @@ on:
     workflows: ["CI"] # Doit correspondre exactement au 'name:' de votre fichier ci.yml
     types:
       - completed
-    branches: [feature/tp-cd]
+    branches: [main]
 
 jobs:
   docker-build-push:
