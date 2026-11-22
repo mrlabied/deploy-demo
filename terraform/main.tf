@@ -23,7 +23,7 @@ variable "namespace_name" {
 
 resource "kubernetes_config_map" "app_config" {
   metadata {
-    name      = "fastapi-config6"
+    name      = "fastapi-config7"
     namespace = var.namespace_name
   }
 
