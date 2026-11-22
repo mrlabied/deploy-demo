@@ -61,6 +61,12 @@ jobs:
 
       - name: Initialiser Terraform
         run: terraform init
+        
+      - name: Configurer le kubeconfig
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBECONFIG_CONTENT }}" > ~/.kube/config
+          chmod 600 ~/.kube/config
 
       - name: Vérifier le formatage et la syntaxe
         run: |
