@@ -16,7 +16,7 @@ provider "kubernetes" {
 }
 
 variable "namespace_name" {
-  description = "Namespace dédié à l'application FastAPI-Existing OpenShift Developer Sandbox namespace"
+  description = "Existing OpenShift Developer Sandbox namespace"
   type        = string
   default     = "mrlabied-dev"
 }
