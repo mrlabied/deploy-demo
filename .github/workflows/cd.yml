@@ -94,6 +94,8 @@ jobs:
           mkdir -p ~/.kube
           echo "${{ secrets.KUBE_CONFIG_DATA }}" | base64 -d > ~/.kube/config
           chmod 600 ~/.kube/config
+          test -s ~/.kube/config || (echo "KUBE_CONFIG_DATA is empty or invalid base64" && exit 1)
+          kubectl config current-context
 
       - name: Appliquer les manifestes Kubernetes
         run: |
@@ -103,16 +105,17 @@ jobs:
         run: |
           kubectl set image deployment/fastapi-deployment \
             fastapi=${{ secrets.DOCKERHUB_USERNAME }}/fastapi-app:${{ needs.docker-build-push.outputs.image_tag }} \
-            -n fastapi-ns
+            -n mrlabied-dev
 
       - name: Suivre l'état du déploiement (Rollout Status)
         run: |
-          kubectl rollout status deployment/fastapi-deployment -n fastapi-ns --timeout=120s
+          kubectl rollout status deployment/fastapi-deployment -n mrlabied-dev --timeout=120s
 
       - name: Vérifier l'état des ressources et test de santé (Smoke Test)
         run: |
-          kubectl get pods,svc -n fastapi-ns
-          # Vérification HTTP via port-forward en arrière-plan pour valider l'endpoint /health ou /docs
-          kubectl port-forward svc/fastapi-service 8080:80 -n fastapi-ns &
+          kubectl get pods,svc -n mrlabied-dev
+          kubectl port-forward svc/fastapi-service 8080:80 -n mrlabied-dev >/tmp/port-forward.log 2>&1 &
+          PF_PID=$!
+          trap 'kill $PF_PID 2>/dev/null || true' EXIT
           sleep 3
-          curl -f http://localhost:8080/docs || (echo "Échec du Smoke Test" && exit 1)
+          curl -f http://localhost:8080/docs || (cat /tmp/port-forward.log && echo "Échec du Smoke Test" && exit 1)
