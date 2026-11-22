@@ -9,31 +9,22 @@ terraform {
   }
 }
 
-# Utilise automatiquement le fichier ~/.kube/config généré dans le runner GitHub Actions
 provider "kubernetes" {
-  config_path = "~/.kube/config"
+  config_path    = "~/.kube/config"
+  config_context = "mrlabied-dev/api-rm1-0a51-p1-openshiftapps-com:6443/mrlabied"
+  insecure       = true
 }
 
 variable "namespace_name" {
-  description = "Namespace dédié à l'application FastAPI"
+  description = "Existing OpenShift Developer Sandbox namespace"
   type        = string
-  default     = "fastapi-ns"
-}
-
-resource "kubernetes_namespace" "app_ns" {
-  metadata {
-    name = var.namespace_name
-    labels = {
-      managed-by = "terraform"
-      env        = "production"
-    }
-  }
+  default     = "mrlabied-dev"
 }
 
 resource "kubernetes_config_map" "app_config" {
   metadata {
     name      = "fastapi-config"
-    namespace = kubernetes_namespace.app_ns.metadata[0].name
+    namespace = var.namespace_name
   }
 
   data = {
