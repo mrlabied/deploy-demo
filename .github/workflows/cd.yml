@@ -61,7 +61,7 @@ jobs:
 
       - name: Initialiser Terraform
         run: terraform init
-        
+
       - name: Configurer le kubeconfig
         run: |
           mkdir -p ~/.kube
@@ -78,3 +78,41 @@ jobs:
 
       - name: Appliquer l'infrastructure (Apply)
         run: terraform apply -auto-approve tfplan
+
+  k8s-deploy:
+    name: Kubernetes – Déploiement & Suivi
+    needs: [terraform-infra, docker-build-push]
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@v4
+
+      - name: Configurer l'accès au cluster (kubectl)
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBE_CONFIG_DATA }}" | base64 -d > ~/.kube/config
+          chmod 600 ~/.kube/config
+
+      - name: Appliquer les manifestes Kubernetes
+        run: |
+          kubectl apply -f k8s/
+
+      - name: Mettre à jour l'image du conteneur
+        run: |
+          kubectl set image deployment/fastapi-deployment \
+            fastapi=${{ secrets.DOCKERHUB_USERNAME }}/fastapi-app:${{ needs.docker-build-push.outputs.image_tag }} \
+            -n fastapi-ns
+
+      - name: Suivre l'état du déploiement (Rollout Status)
+        run: |
+          kubectl rollout status deployment/fastapi-deployment -n fastapi-ns --timeout=120s
+
+      - name: Vérifier l'état des ressources et test de santé (Smoke Test)
+        run: |
+          kubectl get pods,svc -n fastapi-ns
+          # Vérification HTTP via port-forward en arrière-plan pour valider l'endpoint /health ou /docs
+          kubectl port-forward svc/fastapi-service 8080:80 -n fastapi-ns &
+          sleep 3
+          curl -f http://localhost:8080/docs || (echo "Échec du Smoke Test" && exit 1)
