@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: fastapi-deployment
-  namespace: fastapi-ns
+  namespace: mrlabied-dev
   labels:
     app: fastapi
 spec:
