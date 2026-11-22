@@ -92,7 +92,7 @@ jobs:
       - name: Configurer l'accès au cluster (kubectl)
         run: |
           mkdir -p ~/.kube
-          echo "${{ secrets.KUBE_CONFIG_DATA }}" | base64 -d > ~/.kube/config
+          echo "${{ secrets.KUBECONFIG_CONTENT }}" | base64 -d > ~/.kube/config
           chmod 600 ~/.kube/config
           test -s ~/.kube/config || (echo "KUBE_CONFIG_DATA is empty or invalid base64" && exit 1)
           kubectl config current-context
